@@ -233,4 +233,4 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
   :hook (prog-mode . company-mode))
 
 (use-package gptel
-  :ensure t
+  :ensure t)
