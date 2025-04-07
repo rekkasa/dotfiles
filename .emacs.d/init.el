@@ -234,3 +234,27 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
 
 (use-package gptel
   :ensure t)
+
+;; Keymaps
+(define-prefix-command 'my-space-map)
+(define-key evil-normal-state-map (kbd "SPC") 'my-space-map)
+
+;; Define sub-prefixes
+(define-prefix-command 'my-space-f-map)
+(define-prefix-command 'my-space-w-map)
+
+;; Assign sub-prefixes to main space-map
+(define-key my-space-map (kbd "f") 'my-space-f-map)
+(define-key my-space-map (kbd "w") 'my-space-w-map)
+
+;; Define window commands under SPC x ...
+
+;; Define file commands under SPC f ...
+(define-key my-space-f-map (kbd "f") 'find-file)
+
+;; Define window switching under SPC w ...
+(define-key my-space-w-map (kbd "w") 'evil-window-next)
+(define-key my-space-w-map (kbd "3") 'split-window-right)
+(define-key my-space-w-map (kbd "2") 'split-window-below)
+(define-key my-space-w-map (kbd "0") 'delete-window)
+(define-key my-space-w-map (kbd "1") 'delete-other-windows)
