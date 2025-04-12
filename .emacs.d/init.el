@@ -51,6 +51,8 @@
 (setq indent-line-function 'insert-tab)
 (global-hl-line-mode 1)
 
+(setq default-input-method "greek")
+
 
 (column-number-mode)
 (global-display-line-numbers-mode t)
@@ -270,28 +272,40 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
     (setq my/previous-window-configuration (current-window-configuration))
     (delete-other-windows)))
 
+(defun my/copy-directory-path-to-kill-ring ()
+  "Copy the current file's directory path to the kill ring."
+  (interactive)
+  (if-let ((file-name (buffer-file-name)))
+      (let ((directory (file-name-directory file-name)))
+        (kill-new directory)
+        (message "Copied directory path: %s" directory))
+    (message "No file associated with this buffer.")))
+
 ;; ===============================================
 ;; Keymaps
 ;; ===============================================
 (define-prefix-command 'my-space-map)
 (define-key evil-normal-state-map (kbd "SPC") 'my-space-map)
-
 (define-key evil-normal-state-map (kbd "s") 'evil-surround-edit)
 (define-key evil-visual-state-map (kbd "s") 'evil-surround-region)
+
 ;; Define sub-prefixes
 (define-prefix-command 'my-space-f-map)
 (define-prefix-command 'my-space-w-map)
 (define-prefix-command 'my-space-b-map)
 (define-prefix-command 'my-space-g-map)
+(define-prefix-command 'my-space-c-map)
 
 ;; Assign sub-prefixes to main space-map
 (define-key my-space-map (kbd "f") 'my-space-f-map)
 (define-key my-space-map (kbd "w") 'my-space-w-map)
 (define-key my-space-map (kbd "b") 'my-space-b-map)
 (define-key my-space-map (kbd "g") 'my-space-g-map)
+(define-key my-space-map (kbd "c") 'my-space-c-map)
 
 ;; Define file commands under SPC f ...
 (define-key my-space-f-map (kbd "f") 'find-file)
+(define-key my-space-f-map (kbd "c") 'my/copy-directory-path-to-kill-ring)
 
 
 ;; Define window switching under SPC w ...
