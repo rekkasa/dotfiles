@@ -182,8 +182,8 @@
 
 (use-package python-mode
   :ensure t
-  :hook ((python-mode . eglot-ensure)
-         (python-mode . company-mode))
+  :hook (python-mode . eglot-ensure)
+         ;; (python-mode . company-mode))
   :mode (("\\.py\\'" . python-mode)))
 
 (add-to-list 'exec-path "/home/arekkas/.local/bin")
@@ -232,12 +232,23 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
   :config
   (lsp-enable-which-key-integration t))
 
-(use-package company
+(use-package corfu
   :ensure t
+  :init
+  (global-corfu-mode)
+  :custom
+  (corfu-cycle t)                ;; Enable cycling for `corfu'.
+  (corfu-auto t)                 ;; Enable auto completion
+  (corfu-auto-prefix 2)          ;; Minimum prefix length for auto completion
+  (corfu-auto-delay 0.0))        ;; No delay for auto completion
+
+(use-package kind-icon
+  :ensure t
+  :after corfu
+  :custom
+  (kind-icon-default-face 'corfu-default) ; offers a unified appearance
   :config
-  (setq company-idle-delay 0.1
-        company-minimum-prefix-length 1)
-  :hook (prog-mode . company-mode))
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package gptel
   :ensure t)
