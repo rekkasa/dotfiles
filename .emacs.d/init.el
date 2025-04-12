@@ -56,7 +56,7 @@
 (global-display-line-numbers-mode t)
 (set-face-attribute 'default nil
                     :font"FiraCode Nerd Font Mono"
-                    :height 130)
+                    :height 110)
 
 
 (defun my/toggle-vterm ()
@@ -108,6 +108,13 @@
   :after evil
   :config
   (evil-collection-init))
+
+(use-package evil-surround
+    :ensure t
+  :config
+  (global-evil-surround-mode 1))
+
+;; Add custom surround mappings if needed
 
 (use-package doom-modeline
   :ensure t
@@ -235,26 +242,62 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
 (use-package gptel
   :ensure t)
 
+;; ===============================================
+;; Custom functions
+;; ===============================================
+
+(defvar my/previous-window-configuration nil
+  "Store the previous window configuration before maximizing.")
+
+(defun my/toggle-maximize-window ()
+  "Toggle between maximizing the current window and restoring the previous window configuration."
+  (interactive)
+  (if my/previous-window-configuration
+      (progn
+        (set-window-configuration my/previous-window-configuration)
+        (setq my/previous-window-configuration nil))
+    (setq my/previous-window-configuration (current-window-configuration))
+    (delete-other-windows)))
+
+;; ===============================================
 ;; Keymaps
+;; ===============================================
 (define-prefix-command 'my-space-map)
 (define-key evil-normal-state-map (kbd "SPC") 'my-space-map)
 
+(define-key evil-normal-state-map (kbd "s") 'evil-surround-edit)
+(define-key evil-visual-state-map (kbd "s") 'evil-surround-region)
 ;; Define sub-prefixes
 (define-prefix-command 'my-space-f-map)
 (define-prefix-command 'my-space-w-map)
+(define-prefix-command 'my-space-b-map)
+(define-prefix-command 'my-space-g-map)
 
 ;; Assign sub-prefixes to main space-map
 (define-key my-space-map (kbd "f") 'my-space-f-map)
 (define-key my-space-map (kbd "w") 'my-space-w-map)
-
-;; Define window commands under SPC x ...
+(define-key my-space-map (kbd "b") 'my-space-b-map)
+(define-key my-space-map (kbd "g") 'my-space-g-map)
 
 ;; Define file commands under SPC f ...
 (define-key my-space-f-map (kbd "f") 'find-file)
 
+
 ;; Define window switching under SPC w ...
 (define-key my-space-w-map (kbd "w") 'evil-window-next)
+(define-key my-space-w-map (kbd "m") 'my/toggle-maximize-window)
+(define-key my-space-w-map (kbd "b") 'switch-to-buffer)
+(define-key my-space-w-map (kbd "k") 'kill-buffer)
 (define-key my-space-w-map (kbd "3") 'split-window-right)
 (define-key my-space-w-map (kbd "2") 'split-window-below)
 (define-key my-space-w-map (kbd "0") 'delete-window)
 (define-key my-space-w-map (kbd "1") 'delete-other-windows)
+
+;; Define window switching under SPC b ...
+(define-key my-space-b-map (kbd "b") 'bookmark-jump)
+(define-key my-space-b-map (kbd "s") 'bookmark-set)
+
+;; Define window switching under SPC g ...
+(define-key my-space-g-map (kbd "g") 'gptel)
+(define-key my-space-g-map (kbd "RET") 'gptel-send)
+(define-key my-space-g-map (kbd "f") 'gptel-add-file)
