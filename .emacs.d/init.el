@@ -57,8 +57,9 @@
 (column-number-mode)
 (global-display-line-numbers-mode t)
 (set-face-attribute 'default nil
-                    :font"FiraCode Nerd Font Mono"
-                    :height 110)
+                    ;; :font"Fira Code Nerd Font"
+                    :font"Literation Mono Nerd Font"
+                    :height 115)
 
 
 (defun my/toggle-vterm ()
@@ -188,8 +189,8 @@
          ;; (python-mode . company-mode))
   :mode (("\\.py\\'" . python-mode)))
 
-(add-to-list 'exec-path "/home/arekkas/.local/bin")
-(setq inferior-R-program-name "/home/arekkas/.local/bin/R")
+(add-to-list 'exec-path "~/.local/bin")
+(setq inferior-R-program-name "~/.local/bin/R")
 backquote-backquote-symbol(setq ess-indent-offset 2)
 
 (use-package ess
@@ -198,19 +199,36 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
   (require 'ess-site)
   :config
   (setq ess-indent-offset 2)
-  (setq inferior-R-program-name "/home/arekkas/.local/bin/R") ;; Set the correct R path
+  (setq inferior-R-program-name "~/.local/bin/R") ;; Set the correct R path
   :bind (:map ess-r-mode-map
               ("C-SPC" . (lambda () (interactive) (insert " |> ")))
          :map ess-r-mode-map
               ("C-S-SPC" . (lambda () (interactive) (insert " <- ")))))
 
+;; Define namespace face explicitly with default family and italic slant
+(defface ess-namespace-face
+  `((t (:foreground "#a10352"
+        :slant italic
+        :inherit default)))
+  "Face for highlighting package namespaces in ESS R mode.")
+
+;; Highlight package namespaces
+(defun my-ess-highlight-namespace ()
+  "Highlight package namespaces distinctly in ESS R mode."
+  (font-lock-add-keywords
+   nil
+   '(("\\b\\([[:alnum:].]+::\\)" 1 'ess-namespace-face prepend))))
+
+(add-hook 'ess-r-mode-hook #'my-ess-highlight-namespace)
+
+
 (use-package eglot
   :ensure t
   :hook ((ess-r-mode . eglot-ensure))  ;; Enable Eglot in R buffers
   :config
-  (add-to-list 'exec-path "/home/arekkas/.local/bin") ;; Ensure Emacs finds R
+  (add-to-list 'exec-path "~/.local/bin") ;; Ensure Emacs finds R
   (add-to-list 'eglot-server-programs
-               '(ess-r-mode . ("/home/arekkas/.local/bin/R"
+               '(ess-r-mode . ("~/.local/bin/R"
                                "--no-init-file" "--slave" "-e" "languageserver::run()"))))
 
 (defun my/toggle-r-console ()

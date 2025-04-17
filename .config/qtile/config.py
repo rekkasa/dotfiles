@@ -305,7 +305,7 @@ keys.extend([
         lazy.group['scratchpad'].dropdown_toggle('blanket')
     ),
     Key(
-        [mod], "i",
+        [mod], "e",
         lazy.group['scratchpad'].dropdown_toggle('keepassxc')
     ),
 ])
@@ -385,16 +385,16 @@ screens = [
                     linewidth=0,
                     padding=8
                 ),
-                widget.Battery(
-                    font="DejaVu Sans Mono Bold",
-                    fontsize=14,
-                    foreground=colors[0],
-                    format='Battery: {percent:2.0%} [ {char} ]',
-                    discharge_char="discharing",
-                    charge_char = "charging",
-                    update_interval = 10,
-                    hide_threshold = 1.0
-                ),
+                # widget.Battery(
+                #     font="DejaVu Sans Mono Bold",
+                #     fontsize=14,
+                #     foreground=colors[0],
+                #     format='Battery: {percent:2.0%} [ {char} ]',
+                #     discharge_char="discharing",
+                #     charge_char = "charging",
+                #     update_interval = 10,
+                #     hide_threshold = 1.0
+                # ),
                 # widget.ThermalSensor(),
                 widget.Clock(
                     font="DejaVu Sans Mono Bold",

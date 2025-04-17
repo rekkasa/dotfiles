@@ -30,10 +30,10 @@ background = "#f2f2f2"
 text = "#403f53"
 
 [font]
-size = 7
+size = 11
 
 [font.normal]
-family = "Fira Code Nerd Font"
+family = "Literation Mono Nerd Font"
 
 # [schemes.night_owlish_light.bright]
 # black = "#7a8181"
