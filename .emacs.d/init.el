@@ -328,6 +328,9 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
 
 ;; Define window switching under SPC w ...
 (define-key my-space-w-map (kbd "w") 'evil-window-next)
+(define-key my-space-w-map (kbd "q") 'evil-window-prev)
+(define-key my-space-w-map (kbd "l") 'evil-window-right)
+(define-key my-space-w-map (kbd "h") 'evil-window-left)
 (define-key my-space-w-map (kbd "m") 'my/toggle-maximize-window)
 (define-key my-space-w-map (kbd "b") 'switch-to-buffer)
 (define-key my-space-w-map (kbd "k") 'kill-buffer)
