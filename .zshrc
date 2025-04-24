@@ -1,6 +1,7 @@
 # Created by newuser for 5.9
 export PATH="$PATH:$HOME/bin:$HOME/scripts:$HOME/.local/bin:/usr/sbin:/snap/bin/"
 export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+export STARSHIP_CONFIG=~/.config/starship/starship.toml
 XDG_DATA_DIRS=/usr/share/:/usr/local/share/:/var/lib/snapd/desktop/
 
 # Created by newuser for 5.8
