@@ -12,3 +12,6 @@ disabled = false
 
 [rlang]
 symbol = "𝖱 "
+
+[python]
+symbol = "python "

@@ -5,9 +5,7 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
-
 (package-initialize)
-
 
 (setq custom-file (concat user-emacs-directory "custom.el"))
 (when (file-exists-p custom-file)
@@ -82,6 +80,18 @@
 (use-package vterm
   :ensure t)
 
+(use-package zoom
+  :ensure t)
+
+(custom-set-variables
+ '(zoom-mode t))
+
+(defun size-callback ()
+  (cond ((> (frame-pixel-width) 1280) '(90 . 0.75))
+        (t                            '(0.5 . 0.5))))
+
+(custom-set-variables
+ '(zoom-size 'size-callback))
 (use-package emacs :ensure nil :config (setq ring-bell-function #'ignore))
 
 ;; Install and configure evil model
@@ -193,6 +203,25 @@
 (setq inferior-R-program-name "~/.local/bin/R")
 backquote-backquote-symbol(setq ess-indent-offset 2)
 
+
+(use-package eglot
+  :ensure t
+  :hook ((ess-r-mode . eglot-ensure))  ;; Enable Eglot in R buffers
+  :config
+  (add-to-list 'eglot-server-programs
+               '(ess-r-mode . ("~/.local/bin/R" "--no-init-file" "--slave"
+                               "-e" "languageserver::run()"))
+               '(exec-path "~/.local/bin"))
+  (add-hook 'eglot-managed-mode-hook
+            (lambda ()
+              (setq-local completion-at-point-functions
+                          (list
+                           ;; first try LSP
+                           #'eglot-completion-at-point
+                           ;; then dabbrev, file name, etc.
+                           #'cape-dabbrev
+                           #'cape-file)))))
+
 (use-package ess
   :ensure t
   :init
@@ -221,16 +250,6 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
 
 (add-hook 'ess-r-mode-hook #'my-ess-highlight-namespace)
 
-
-(use-package eglot
-  :ensure t
-  :hook ((ess-r-mode . eglot-ensure))  ;; Enable Eglot in R buffers
-  :config
-  (add-to-list 'exec-path "~/.local/bin") ;; Ensure Emacs finds R
-  (add-to-list 'eglot-server-programs
-               '(ess-r-mode . ("~/.local/bin/R"
-                               "--no-init-file" "--slave" "-e" "languageserver::run()"))))
-
 (defun my/toggle-r-console ()
   "Toggle between the *R* process buffer and the previous buffer."
   (interactive)
@@ -252,15 +271,71 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
   :config
   (lsp-enable-which-key-integration t))
 
+;; ——————— Orderless: flexible fuzzy matching ———————
+(use-package orderless
+  :ensure t)
+
+;; ——————— Cape: extra CapF backends (optional) ———————
 (use-package corfu
   :ensure t
   :init
-  (global-corfu-mode)
+  (global-corfu-mode)       ;; enable everywhere
   :custom
   (corfu-cycle t)                ;; Enable cycling for `corfu'.
   (corfu-auto t)                 ;; Enable auto completion
   (corfu-auto-prefix 2)          ;; Minimum prefix length for auto completion
-  (corfu-auto-delay 0.0))        ;; No delay for auto completion
+  (corfu-auto-delay 0.0)
+  :bind
+  (:map corfu-map
+        ("TAB"       . corfu-next)
+        ("<tab>"     . corfu-next)
+        ("S-TAB"     . corfu-previous)
+        ("<backtab>" . corfu-previous)
+        ("RET"       . corfu-insert)))
+
+(use-package cape
+  :ensure t
+  :init
+  ;; add any extra CAPF functions you like; dabbrev is great for R
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file))
+
+;; ─── Hook Corfu into ESS & Eglot ───────────────────────────────────────────
+;; ESS by itself uses its own completion-at-point; Eglot injects its CAPF when
+;; you’re in an LSP session. We want corfu-mode on in both cases, and to ensure
+;; that eglot-completion-at-point is first in the CAPF list.
+
+(defun my/enable-corfu-for-ess-eglot ()
+  "Turn on corfu-mode and prioritize eglot completion in ESS buffers."
+  (corfu-mode 1)
+  (when (bound-and-true-p eglot--managed-mode)
+    ;; make sure eglot-capf is first
+    (setq-local completion-at-point-functions
+                (cons #'eglot-completion-at-point
+                      (remq #'eglot-completion-at-point
+                            completion-at-point-functions)))))
+
+;; Always enable in ESS-R
+(add-hook 'ess-r-mode-hook #'my/enable-corfu-for-ess-eglot)
+;; Also when Eglot starts managing any buffer
+(add-hook 'eglot-managed-mode-hook #'my/enable-corfu-for-ess-eglot)
+
+;; (use-package corfu
+;;   :ensure t
+;;   :init
+;;   (global-corfu-mode)
+;;   :custom
+;;   (corfu-cycle t)                ;; Enable cycling for `corfu'.
+;;   (corfu-auto t)                 ;; Enable auto completion
+;;   (corfu-auto-prefix 2)          ;; Minimum prefix length for auto completion
+;;   (corfu-auto-delay 0.0)
+;;   :bind
+;;   (:map corfu-map
+;;         ("TAB"       . corfu-next)
+;;         ("<tab>"     . corfu-next)
+;;         ("S-TAB"     . corfu-previous)
+;;         ("<backtab>" . corfu-previous)
+;;         ("RET"       . corfu-insert)))        ;; No delay for auto completion
 
 (use-package kind-icon
   :ensure t
