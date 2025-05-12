@@ -374,6 +374,38 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
         (message "Copied directory path: %s" directory))
     (message "No file associated with this buffer.")))
 
+(defun my/goto-first-number-on-line ()
+  "If point isn’t on a digit, move to the first digit in the current line.
+Signal an error if there is no number on the line."
+  (unless (looking-at "[0-9]")
+    (beginning-of-line)
+    (if (re-search-forward "[0-9]+" (line-end-position) t)
+        (goto-char (match-beginning 0))
+      (error "No number on current line"))))
+
+(defun my/increment-number-at-point ()
+  "Increment the decimal number under point by 1.
+If point isn’t on a number, first move to the first number in the current line."
+  (interactive)
+  (my/goto-first-number-on-line)
+  (skip-chars-backward "0-9")
+  (unless (looking-at "[0-9]+")
+    (error "No number at point"))
+  (replace-match
+   (number-to-string
+    (1+ (string-to-number (match-string 0))))))
+
+(defun my/decrement-number-at-point ()
+  "Decrement the decimal number under point by 1.
+If point isn’t on a number, first move to the first number in the current line."
+  (interactive)
+  (my/goto-first-number-on-line)
+  (skip-chars-backward "0-9")
+  (unless (looking-at "[0-9]+")
+    (error "No number at point"))
+  (replace-match
+   (number-to-string
+    (1- (string-to-number (match-string 0))))))
 ;; ===============================================
 ;; Keymaps
 ;; ===============================================
@@ -388,6 +420,7 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
 (define-prefix-command 'my-space-b-map)
 (define-prefix-command 'my-space-g-map)
 (define-prefix-command 'my-space-c-map)
+(define-prefix-command 'my-space-n-map)
 
 ;; Assign sub-prefixes to main space-map
 (define-key my-space-map (kbd "f") 'my-space-f-map)
@@ -395,6 +428,7 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
 (define-key my-space-map (kbd "b") 'my-space-b-map)
 (define-key my-space-map (kbd "g") 'my-space-g-map)
 (define-key my-space-map (kbd "c") 'my-space-c-map)
+(define-key my-space-map (kbd "n") 'my-space-n-map)
 
 ;; Define file commands under SPC f ...
 (define-key my-space-f-map (kbd "f") 'find-file)
@@ -422,3 +456,7 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
 (define-key my-space-g-map (kbd "g") 'gptel)
 (define-key my-space-g-map (kbd "RET") 'gptel-send)
 (define-key my-space-g-map (kbd "f") 'gptel-add-file)
+
+;; Define window switching under SPC g ...
+(define-key my-space-n-map (kbd "i") 'my/increment-number-at-point)
+(define-key my-space-n-map (kbd "d") 'my/decrement-number-at-point)
