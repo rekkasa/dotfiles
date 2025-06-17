@@ -266,6 +266,11 @@ keys = [
       lazy.spawn("brave --app=https://teams.microsoft.com"),
       desc="Launches MS Teams"
     ),
+    Key(
+      [mod], "o", 
+      lazy.spawn("onlyoffice-desktopeditors"),
+      desc="Launches OnlyOffice"
+    ),
 ]
 
 # groups = [Group(i) for i in "123456789"]
