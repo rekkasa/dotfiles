@@ -52,6 +52,9 @@
 (setq default-input-method "greek")
 
 
+(setq-default abbrev-mode t)
+(setq save-abbrevs 'silently)
+
 (column-number-mode)
 (global-display-line-numbers-mode t)
 (set-face-attribute 'default nil
@@ -460,3 +463,23 @@ If point isn’t on a number, first move to the first number in the current line
 ;; Define window switching under SPC g ...
 (define-key my-space-n-map (kbd "i") 'my/increment-number-at-point)
 (define-key my-space-n-map (kbd "d") 'my/decrement-number-at-point)
+
+
+(defun my-abbrevs/insert-r-fun ()
+  "Insert an R function template."
+  (interactive)
+  (insert "
+f <- function(
+  x1,
+  x2,
+  ...
+) {
+
+  return(TRUE)
+
+}")
+t)
+
+(with-eval-after-load 'ess-r-mode          ; wait until ESS is loaded
+  (define-abbrev ess-r-mode-abbrev-table
+    "Rfun" "" 'my-abbrevs/insert-r-fun))         ; "" means “use the function”
