@@ -236,6 +236,9 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
               ("C-SPC" . (lambda () (interactive) (insert " |> ")))
          :map ess-r-mode-map
               ("C-S-SPC" . (lambda () (interactive) (insert " <- ")))))
+  :hook 'inferior-ess-mode-hook
+          (lambda ()
+            (face-remap-add-relative 'default :height 100))
 
 ;; Define namespace face explicitly with default family and italic slant
 (defface ess-namespace-face
@@ -409,6 +412,70 @@ If point isn’t on a number, first move to the first number in the current line
   (replace-match
    (number-to-string
     (1- (string-to-number (match-string 0))))))
+
+(defun my-abbrevs/insert-r-fun ()
+  "Insert an R function template."
+  (interactive)
+  (insert "
+f <- function(
+  x1,
+  x2,
+  ...
+) {
+
+  TRUE
+
+}")
+t)
+
+(defun my-abbrevs/insert-db-connection-fun ()
+  "Insert an R function template."
+  (interactive)
+  (insert "
+connection <- DatabaseConnector::connect(connectionDetails)
+on.exit(DatabaseConnector::disconnect(connection))
+")
+  t)
+
+(defun my-abbrevs/insert-roxygen-doc-fun ()
+  "Insert an R function template."
+  (interactive)
+  (insert
+ "\n"
+ "#' Title\n"
+ "#'\n"
+ "#' @description\n"
+ "#'\n"
+ "#' @param\n"
+ "#' @param\n"
+ "#'\n"
+ "#' @return\n"
+ "#'\n"
+ "#' @export\n"
+ "#'\n"
+ "#' @examples\n"
+ )
+  t)
+
+(with-eval-after-load 'ess-r-mode          ; wait until ESS is loaded
+  (define-abbrev ess-r-mode-abbrev-table
+    "Rfun" "" 'my-abbrevs/insert-r-fun)
+  (define-abbrev ess-r-mode-abbrev-table
+    "dbcon" "" 'my-abbrevs/insert-db-connection-fun)
+  (define-abbrev ess-r-mode-abbrev-table
+    "roxy" "" 'my-abbrevs/insert-roxygen-doc-fun)
+  )         ; "" means “use the function”
+
+(defun my/R-insert-pipe ()
+  "Insert the R pipe |>."
+  (interactive)
+  (insert " |> "))
+
+(defun my/R-insert-assignment ()
+  "Insert the R pipe |>."
+  (interactive)
+  (insert " <- "))
+
 ;; ===============================================
 ;; Keymaps
 ;; ===============================================
@@ -465,21 +532,11 @@ If point isn’t on a number, first move to the first number in the current line
 (define-key my-space-n-map (kbd "d") 'my/decrement-number-at-point)
 
 
-(defun my-abbrevs/insert-r-fun ()
-  "Insert an R function template."
-  (interactive)
-  (insert "
-f <- function(
-  x1,
-  x2,
-  ...
-) {
+;; ess keymaps
+(with-eval-after-load 'ess
+  (define-key ess-r-mode-map   (kbd "C-SPC") #'my/R-insert-pipe)
+  (define-key inferior-ess-mode-map (kbd "C-SPC") #'my/R-insert-pipe))
 
-  return(TRUE)
-
-}")
-t)
-
-(with-eval-after-load 'ess-r-mode          ; wait until ESS is loaded
-  (define-abbrev ess-r-mode-abbrev-table
-    "Rfun" "" 'my-abbrevs/insert-r-fun))         ; "" means “use the function”
+(with-eval-after-load 'ess
+  (define-key ess-r-mode-map   (kbd "C-S-SPC") #'my/R-insert-assignment)
+  (define-key inferior-ess-mode-map (kbd "C-S-SPC") #'my/R-insert-assignment))
