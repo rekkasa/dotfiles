@@ -55,6 +55,12 @@
 (setq-default abbrev-mode t)
 (setq save-abbrevs 'silently)
 
+(defun load-global-r-abbrev-lambdas ()
+  (load-file "~/.emacs.d/global_r_abbrevs.el")
+  (abbrev-mode 1))
+
+(add-hook 'after-init-hook #'load-global-r-abbrev-lambdas)
+
 (column-number-mode)
 (global-display-line-numbers-mode t)
 (set-face-attribute 'default nil
@@ -457,6 +463,20 @@ on.exit(DatabaseConnector::disconnect(connection))
  )
   t)
 
+(defun my-abbrevs/insert-query-sql ()
+  "Insert an R function template."
+  (interactive)
+  (insert
+   "DatabaseConnector::querySql(\n"
+   "  connection = connection,\n"
+   "  sql = glue::glue(\n"
+   "    \"\n"
+   "    \"\n"
+   "  )\n"
+   ")\n"
+   )
+  t)
+
 (with-eval-after-load 'ess-r-mode          ; wait until ESS is loaded
   (define-abbrev ess-r-mode-abbrev-table
     "Rfun" "" 'my-abbrevs/insert-r-fun)
@@ -464,6 +484,8 @@ on.exit(DatabaseConnector::disconnect(connection))
     "dbcon" "" 'my-abbrevs/insert-db-connection-fun)
   (define-abbrev ess-r-mode-abbrev-table
     "roxy" "" 'my-abbrevs/insert-roxygen-doc-fun)
+  (define-abbrev ess-r-mode-abbrev-table
+    "rquery" "" 'my-abbrevs/insert-query-sql)
   )         ; "" means “use the function”
 
 (defun my/R-insert-pipe ()
@@ -540,3 +562,5 @@ on.exit(DatabaseConnector::disconnect(connection))
 (with-eval-after-load 'ess
   (define-key ess-r-mode-map   (kbd "C-S-SPC") #'my/R-insert-assignment)
   (define-key inferior-ess-mode-map (kbd "C-S-SPC") #'my/R-insert-assignment))
+
+;; Load global R abbrevs
