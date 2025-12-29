@@ -27,7 +27,7 @@
 from typing import List  # noqa: F401
 from libqtile import hook
 from libqtile import bar, layout, widget
-from libqtile.config import Click, Drag, Group, Key, Match, Screen, ScratchPad, DropDown
+from libqtile.config import Click, Drag, Group, Key, Match, Screen, ScratchPad, DropDown, KeyChord
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 
@@ -257,11 +257,6 @@ keys = [
       desc="Launches certh email"
     ),
     Key(
-      [mod], "c", 
-      lazy.spawn("brave --app=https://calendar.google.com/"),
-      desc="Launches certh email"
-    ),
-    Key(
       [mod], "t", 
       lazy.spawn("brave --app=https://teams.microsoft.com"),
       desc="Launches MS Teams"
@@ -274,24 +269,26 @@ keys = [
 ]
 
 # groups = [Group(i) for i in "123456789"]
-# groups = [Group(i) for i in "123456789"]
-groups = [
-    Group(name = "1", label = ""),
-    Group(name = "2", label = ""),
-    Group(name = "3", label = ""),
-    Group(name = "4", label = ""),
-    Group(name = "5", label = ""),
-    Group(name = "6", label = ""),
-    Group(name = "7", label = ""),
-    Group(name = "8", label = ""),
-    Group(name = "9", label = ""),
-    Group(name = "0", label = ""),
-]
+groups = [Group(i) for i in "1234567890"]
+# groups = [
+#     Group(name = "1", label = ""),
+#     Group(name = "2", label = ""),
+#     Group(name = "3", label = ""),
+#     Group(name = "4", label = ""),
+#     Group(name = "5", label = ""),
+#     Group(name = "6", label = ""),
+#     Group(name = "7", label = ""),
+#     Group(name = "8", label = ""),
+#     Group(name = "9", label = ""),
+#     Group(name = "0", label = ""),
+# ]
 
 # Scratchpad
 groups.append(ScratchPad('scratchpad', [
     DropDown('term', terminal, width=0.7, height=0.5, x=0.15, y=0.2, on_focus_lost_hide = False),
-    DropDown('chatgpt', 'chromium --app=https://chatgpt.com/', width=1, height=1, x=0, on_focus_lost_hide = False),
+    DropDown('claude', 'firefox --no-remote -P kiosk_claude --kiosk https://claude.ai/new/', width=1, height=1, x=0, on_focus_lost_hide = False),
+    DropDown('chatgpt', 'firefox --no-remote -P kiosk_chatgpt --kiosk https://chatgpt.com/', width=1, height=1, x=0, on_focus_lost_hide = False),
+    DropDown('calendar', 'firefox --no-remote -P kiosk_scholar --kiosk https://calendar.google.com', width=1, height=1, x=0, on_focus_lost_hide = False),
     DropDown('keepassxc', 'keepassxc', width=0.8, height=0.8, x=0.1, y=0.05, on_focus_lost_hide = False),
     DropDown('blanket', 'blanket', width=0.8, height=0.8, x=0.1, y=0.05, on_focus_lost_hide = False),
 ]))
@@ -303,7 +300,7 @@ keys.extend([
     ),
     Key(
         [mod], "q",
-        lazy.group['scratchpad'].dropdown_toggle('chatgpt')
+        lazy.group['scratchpad'].dropdown_toggle('claude')
     ),
     Key(
         [mod], "b",
@@ -312,6 +309,27 @@ keys.extend([
     Key(
         [mod], "e",
         lazy.group['scratchpad'].dropdown_toggle('keepassxc')
+    ),
+    Key(
+        [mod], "c",
+        lazy.group['scratchpad'].dropdown_toggle('calendar')
+    ),
+    Key(
+        [mod], "y",
+        lazy.group['scratchpad'].dropdown_toggle('chatgpt')
+    ),
+    KeyChord(
+        [mod], "q",
+        [
+            Key(
+                [], "q",
+                lazy.group['scratchpad'].dropdown_toggle('claude')
+            ),
+            Key(
+                [], "w",
+                lazy.group['scratchpad'].dropdown_toggle('chatgpt')
+            ),
+        ]
     ),
 ])
 
@@ -354,14 +372,15 @@ screens = [
         top=bar.Bar(
             [
                 widget.GroupBox(
-                    font="FontAwesome",
+                    font="DejaVu Sans Mono Bold",
                     fontsize=14,
                     hide_unused=True,
                     active=colors[0],
                     inactive=colors[0],
                     highlight_method="text",
                     highlight_color="#4184ab",
-                    other_current_screen_border=colors[0]
+                    other_current_screen_border=colors[0],
+                    this_current_screen_border=colors[5],
                 ),
                 widget.Prompt(),
                 widget.WindowName(
@@ -419,14 +438,15 @@ screens = [
         top=bar.Bar(
             [
                 widget.GroupBox(
-                    font="FontAwesome",
+                    font="DejaVu Sans Mono Bold",
                     fontsize=14,
                     hide_unused=True,
                     active=colors[0],
                     inactive=colors[0],
                     highlight_method="text",
                     highlight_color="#4184ab",
-                    other_current_screen_border=colors[0]
+                    other_current_screen_border=colors[0],
+                    this_current_screen_border=colors[5],
                 ),
                 widget.Prompt(),
                 widget.WindowName(
@@ -484,14 +504,15 @@ screens = [
         top=bar.Bar(
             [
                 widget.GroupBox(
-                    font="FontAwesome",
+                    font="DejaVu Sans Mono Bold",
                     fontsize=14,
                     hide_unused=True,
                     active=colors[0],
                     inactive=colors[0],
                     highlight_method="text",
                     highlight_color="#4184ab",
-                    other_current_screen_border=colors[0]
+                    other_current_screen_border=colors[0],
+                    this_current_screen_border=colors[5],
                 ),
                 widget.Prompt(),
                 widget.WindowName(

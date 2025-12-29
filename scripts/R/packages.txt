@@ -8,6 +8,7 @@ data.table
 dplyr
 tidyr
 purrr
+stringr
 ggplot2
 lubridate
 Matrix

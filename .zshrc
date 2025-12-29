@@ -45,6 +45,11 @@ alias cat="batcat --theme='OneHalfLight'"
 alias v="~/Documents/appimages/nvim.appimage"
 alias sq="source /home/arekkas/src/qtile/venv/bin/activate && startx"
 
+alias ..="cd .."
+alias ...="cd ../.."
+alias .3="cd ../../.."
+alias .4="cd ../../../.."
+
 # ---- Git ----
 alias gg="git status --short"
 alias ga="git add"
@@ -86,3 +91,19 @@ bindkey '^e' edit-command-line
 
 source .zsh/zsh-autosuggestions/zsh-autosuggestions.zsh 2>/dev/null
 source .zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh 2>/dev/null
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/home/alrekkas/miniforge3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/home/alrekkas/miniforge3/etc/profile.d/conda.sh" ]; then
+        . "/home/alrekkas/miniforge3/etc/profile.d/conda.sh"
+    else
+        export PATH="/home/alrekkas/miniforge3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+

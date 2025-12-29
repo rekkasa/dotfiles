@@ -273,6 +273,15 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
 
 (global-set-key (kbd "C-c r") 'my/toggle-r-console)
 
+(use-package org-roam
+  :ensure t
+  :init
+  (setq org-roam-v2-ack t)
+  :custom
+  (org-roam-directory "~/RoamNotes")
+  :config
+  (org-roam-setup))
+
 ;;; LSP-mode
 
 (use-package lsp-mode
@@ -363,6 +372,20 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
 ;; ===============================================
 ;; Custom functions
 ;; ===============================================
+
+(defun my/extract-package-function ()
+  "Return the symbol at point like 'package::function' as 'packagefunction'."
+  (interactive)
+  (let ((bounds (bounds-of-thing-at-point 'symbol)))
+    (save-excursion
+      ;; Move back until we hit the start of 'package'
+      (skip-chars-backward "[:alnum:]_")
+      (let* ((start (point))
+             (end (progn (skip-chars-forward "[:alnum:]_:") (point)))
+             (raw (buffer-substring-no-properties start end))
+             (clean (replace-regexp-in-string "::" "" raw)))
+        (message "%s" clean)
+        clean))))
 
 (defvar my/previous-window-configuration nil
   "Store the previous window configuration before maximizing.")
@@ -513,6 +536,7 @@ on.exit(DatabaseConnector::disconnect(connection))
 (define-prefix-command 'my-space-g-map)
 (define-prefix-command 'my-space-c-map)
 (define-prefix-command 'my-space-n-map)
+(define-prefix-command 'my-space-r-map)
 
 ;; Assign sub-prefixes to main space-map
 (define-key my-space-map (kbd "f") 'my-space-f-map)
@@ -521,6 +545,7 @@ on.exit(DatabaseConnector::disconnect(connection))
 (define-key my-space-map (kbd "g") 'my-space-g-map)
 (define-key my-space-map (kbd "c") 'my-space-c-map)
 (define-key my-space-map (kbd "n") 'my-space-n-map)
+(define-key my-space-map (kbd "r") 'my-space-r-map)
 
 ;; Define file commands under SPC f ...
 (define-key my-space-f-map (kbd "f") 'find-file)
@@ -563,4 +588,12 @@ on.exit(DatabaseConnector::disconnect(connection))
   (define-key ess-r-mode-map   (kbd "C-S-SPC") #'my/R-insert-assignment)
   (define-key inferior-ess-mode-map (kbd "C-S-SPC") #'my/R-insert-assignment))
 
+(with-eval-after-load 'ess
+  (define-key ess-r-mode-map   (kbd "C-TAB") #'my/extract-package-function)
+  (define-key inferior-ess-mode-map (kbd "C-TAB") #'my/extract-package-function))
+
 ;; Load global R abbrevs
+;; Define window switching under SPC n ...
+(define-key my-space-r-map (kbd "l") 'org-roam-buffer-toggle)
+(define-key my-space-r-map (kbd "f") 'org-roam-node-find)
+(define-key my-space-r-map (kbd "r") 'org-roam-node-insert)
