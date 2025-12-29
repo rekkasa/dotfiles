@@ -131,7 +131,7 @@ keys = [
     ),
     Key(
       [mod, "shift"], "Return", 
-      lazy.spawn(terminal), 
+      lazy.spawn("kitty"), 
       desc="Launch terminal"
     ),
     Key(
