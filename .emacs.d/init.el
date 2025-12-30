@@ -500,6 +500,20 @@ on.exit(DatabaseConnector::disconnect(connection))
    )
   t)
 
+(define-abbrev global-abbrev-table "collapsebutton"
+  ""
+  (lambda ()
+    (insert
+     "<button class=\"btn btn-outline-primary btn-sm\" type=\"button\" data-bs-toggle=\"collapse\" data-bs-target=\"#REPLACE\">\n"
+     "  Show\n"
+     "</button>\n"
+     "::: {#REPLACE .collapse}\n"
+     "\n"
+     "\n"
+     ":::\n")
+    t))
+
+
 (with-eval-after-load 'ess-r-mode          ; wait until ESS is loaded
   (define-abbrev ess-r-mode-abbrev-table
     "Rfun" "" 'my-abbrevs/insert-r-fun)
