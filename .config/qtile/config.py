@@ -246,16 +246,16 @@ keys = [
       lazy.spawn("brave --app=https://youtube.com/"),
       desc="Launches youtube"
     ),
-    Key(
-      [mod], "m", 
-      lazy.spawn("brave --app=https://mail.certh.gr/"),
-      desc="Launches certh email"
-    ),
-    Key(
-      [mod], "g", 
-      lazy.spawn("brave --app=https://mail.google.com/"),
-      desc="Launches certh email"
-    ),
+    # Key(
+    #   [mod], "m", 
+    #   lazy.spawn("brave --app=https://mail.certh.gr/"),
+    #   desc="Launches certh email"
+    # ),
+    # Key(
+    #   [mod], "g", 
+    #   lazy.spawn("brave --app=https://mail.google.com/"),
+    #   desc="Launches certh email"
+    # ),
     Key(
       [mod], "t", 
       lazy.spawn("brave --app=https://teams.microsoft.com"),
@@ -286,9 +286,12 @@ groups = [Group(i) for i in "1234567890"]
 # Scratchpad
 groups.append(ScratchPad('scratchpad', [
     DropDown('term', terminal, width=0.7, height=0.5, x=0.15, y=0.2, on_focus_lost_hide = False),
+    DropDown('notes', 'firefox --no-remote -P kiosk_notes --kiosk  http://localhost:8081/', width=1, height=1, x=0, on_focus_lost_hide = False),
     DropDown('claude', 'firefox --no-remote -P kiosk_claude --kiosk https://claude.ai/new/', width=1, height=1, x=0, on_focus_lost_hide = False),
     DropDown('chatgpt', 'firefox --no-remote -P kiosk_chatgpt --kiosk https://chatgpt.com/', width=1, height=1, x=0, on_focus_lost_hide = False),
     DropDown('calendar', 'firefox --no-remote -P kiosk_scholar --kiosk https://calendar.google.com', width=1, height=1, x=0, on_focus_lost_hide = False),
+    DropDown('gmail', 'firefox --no-remote -P kiosk_gmail --kiosk https://mail.google.com', width=1, height=1, x=0, on_focus_lost_hide = False),
+    DropDown('certh-mail', 'firefox --no-remote -P kiosk_mail_certh --kiosk https://mail.certh.gr', width=1, height=1, x=0, on_focus_lost_hide = False),
     DropDown('keepassxc', 'keepassxc', width=0.8, height=0.8, x=0.1, y=0.05, on_focus_lost_hide = False),
     DropDown('blanket', 'blanket', width=0.8, height=0.8, x=0.1, y=0.05, on_focus_lost_hide = False),
 ]))
@@ -297,6 +300,10 @@ keys.extend([
     Key(
         [mod], "Return",
         lazy.group['scratchpad'].dropdown_toggle('term')
+    ),
+    Key(
+        [mod], "s",
+        lazy.group['scratchpad'].dropdown_toggle('notes')
     ),
     Key(
         [mod], "q",
@@ -317,6 +324,14 @@ keys.extend([
     Key(
         [mod], "y",
         lazy.group['scratchpad'].dropdown_toggle('chatgpt')
+    ),
+    Key(
+        [mod], "g",
+        lazy.group['scratchpad'].dropdown_toggle('gmail')
+    ),
+    Key(
+        [mod], "m",
+        lazy.group['scratchpad'].dropdown_toggle('certh-mail')
     ),
     KeyChord(
         [mod], "q",
