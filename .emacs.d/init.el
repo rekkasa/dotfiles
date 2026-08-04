@@ -64,8 +64,8 @@
 (column-number-mode)
 (global-display-line-numbers-mode t)
 (set-face-attribute 'default nil
-                    ;; :font"Fira Code Nerd Font"
-                    :font"Literation Mono Nerd Font"
+                    :font"Fira Code Nerd Font"
+                    ;; :font"Literation Mono Nerd Font"
                     :height 115)
 
 
@@ -143,13 +143,25 @@
   :demand t
   :init (doom-modeline-mode 1))
 
-(use-package doom-themes
-  :ensure t
-  :demand t)
+;; (use-package doom-themes
+;;   :ensure t
+;;   :demand t)
+;; 
+;; (load-theme 'doom-tomorrow-day t)
 
-(load-theme 'doom-tomorrow-day t)
-(add-to-list 'default-frame-alist '(foreground-color . "#000000"))
-(add-to-list 'default-frame-alist '(background-color . "#FFFFFF"))
+(use-package catppuccin-theme
+  :ensure t
+  :demand t
+  :init
+  (setq catppuccin-flavor 'latte) ;; 'latte, 'frappe, 'macchiato or 'mocha
+  :config
+  (load-theme 'catppuccin :no-confirm))
+
+;; (add-to-list 'default-frame-alist '(foreground-color . "#4C4F69"))
+;; (add-to-list 'default-frame-alist '(background-color . "#EFF1F5"))
+;; 
+;; (add-to-list 'default-frame-alist '(foreground-color . "#000000"))
+;; (add-to-list 'default-frame-alist '(background-color . "#FFFFFF"))
 
 (use-package vertico
   :ensure t
@@ -273,14 +285,14 @@ backquote-backquote-symbol(setq ess-indent-offset 2)
 
 (global-set-key (kbd "C-c r") 'my/toggle-r-console)
 
-(use-package org-roam
-  :ensure t
-  :init
-  (setq org-roam-v2-ack t)
-  :custom
-  (org-roam-directory "~/RoamNotes")
-  :config
-  (org-roam-setup))
+;; (use-package org-roam
+;;   :ensure t
+;;   :init
+;;   (setq org-roam-v2-ack t)
+;;   :custom
+;;   (org-roam-directory "~/RoamNotes")
+;;   :config
+;;   (org-roam-setup))
 
 ;;; LSP-mode
 
@@ -535,6 +547,47 @@ on.exit(DatabaseConnector::disconnect(connection))
   (interactive)
   (insert " <- "))
 
+
+;; ===============================================
+;; AI query commands
+;; ===============================================
+
+(defvar llm-query-template
+  "# Background\n\n- \n\n# Task\n\n- \n\n# Instructions\n\n- \n\n# Notes\n\n- \n"
+  "Template for Llm queries.")
+
+(defvar llm-queries-dir "~/Documents/queries/"
+  "Directory where Llm query markdown files are saved.")
+
+(defun my/llm-new-query ()
+  "Open a new scratch buffer with the Llm query template."
+  (interactive)
+  (let ((buf (generate-new-buffer "*llm-query*")))
+    (switch-to-buffer buf)
+    (insert llm-query-template)
+    (markdown-mode)
+    (goto-char (point-min))
+    (forward-line 2)
+    (message "Llm query ready. SPC c s to save.")))
+
+(defun my/llm-save-query ()
+  "Save the current buffer as a timestamped markdown file."
+  (interactive)
+  (unless (file-directory-p llm-queries-dir)
+    (make-directory llm-queries-dir t))
+  (let* ((timestamp (format-time-string "%Y%m%d_%H%M%S"))
+         (name (read-string "Query name (blank for timestamp only): "))
+         (slug (if (string-blank-p name)
+                   timestamp
+                 (concat timestamp "_" (replace-regexp-in-string "[^a-zA-Z0-9_-]" "_" name))))
+         (filepath (expand-file-name (concat slug ".md") llm-queries-dir)))
+    (write-region (point-min) (point-max) filepath)
+    (message "Saved: %s" filepath)))
+
+;; SPC c is already defined as my-space-c-map — wire Llm commands into it
+
+(load-file (concat user-emacs-directory "md-preview.el"))
+
 ;; ===============================================
 ;; Keymaps
 ;; ===============================================
@@ -588,10 +641,14 @@ on.exit(DatabaseConnector::disconnect(connection))
 (define-key my-space-g-map (kbd "RET") 'gptel-send)
 (define-key my-space-g-map (kbd "f") 'gptel-add-file)
 
-;; Define window switching under SPC g ...
+;; Define window switching under SPC n ...
 (define-key my-space-n-map (kbd "i") 'my/increment-number-at-point)
 (define-key my-space-n-map (kbd "d") 'my/decrement-number-at-point)
 
+
+;; Define window switching under SPC c ...
+(define-key my-space-c-map (kbd "n") 'my/llm-new-query)
+(define-key my-space-c-map (kbd "s") 'my/llm-save-query)
 
 ;; ess keymaps
 (with-eval-after-load 'ess
@@ -611,3 +668,9 @@ on.exit(DatabaseConnector::disconnect(connection))
 (define-key my-space-r-map (kbd "l") 'org-roam-buffer-toggle)
 (define-key my-space-r-map (kbd "f") 'org-roam-node-find)
 (define-key my-space-r-map (kbd "r") 'org-roam-node-insert)
+
+
+(define-prefix-command 'my-space-m-map)
+(define-key my-space-map (kbd "m") 'my-space-m-map)
+(define-key my-space-m-map (kbd "p") 'my/md-preview)
+(define-key my-space-m-map (kbd "k") 'my/md-preview-stop)
