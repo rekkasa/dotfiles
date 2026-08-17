@@ -548,7 +548,12 @@ have the same problem locally."
               ess-style 'RStudio
               ess-use-flymake nil       ; eglot supplies diagnostics
               ess-ask-for-ess-directory nil
-              inferior-R-program-name (expand-file-name "~/.local/bin/R")))
+              ;; `inferior-R-program-name' (the old config's name) has been
+              ;; obsolete since ESS 18.10; setting it does nothing on a
+              ;; current ESS, so the R console would quietly use whichever R
+              ;; is first on PATH instead of the one you meant.
+              inferior-ess-r-program (or (executable-find "R")
+                                         (expand-file-name "~/.local/bin/R"))))
 
 (defface ess-namespace-face
   '((t (:foreground "#a10352" :slant italic :inherit default)))
@@ -933,12 +938,28 @@ on.exit(DatabaseConnector::disconnect(connection))
 ;; C-SPC survives a terminal (it is C-@) but C-S-SPC and C-<tab> do NOT --
 ;; a terminal has no way to encode them.  With kkp active they work; the
 ;; M-- and SPC c e bindings below are the fallbacks that always work.
-(with-eval-after-load 'ess
-  (dolist (map (list ess-r-mode-map inferior-ess-mode-map))
-    (define-key map (kbd "C-SPC")   #'my/R-insert-pipe)
-    (define-key map (kbd "M--")     #'my/R-insert-assignment)  ; RStudio's key
-    (define-key map (kbd "C-S-SPC") #'my/R-insert-assignment)  ; needs kkp
-    (define-key map (kbd "C-<tab>") #'my/extract-package-function))) ; needs kkp
+;;
+;; IMPORTANT: these must hang off `ess-r-mode' and `ess-inf', not `ess'.
+;; ESS is split across files: ess.el provides `ess' and defines neither map;
+;; `ess-r-mode-map' comes from ess-r-mode.el and `inferior-ess-mode-map' from
+;; ess-inf.el.  `with-eval-after-load 'ess' fires the moment ess.el finishes,
+;; which is *before* either map exists -- giving
+;; "File mode specification error: (void-variable ess-r-mode-map)" and, worse,
+;; aborting the rest of major-mode setup so `ess-r-mode-hook' never runs and
+;; eglot never starts.
+
+(defun my/ess-bind-keys (map)
+  "Install the R editing keys into MAP."
+  (define-key map (kbd "C-SPC")   #'my/R-insert-pipe)
+  (define-key map (kbd "M--")     #'my/R-insert-assignment)  ; RStudio's key
+  (define-key map (kbd "C-S-SPC") #'my/R-insert-assignment)  ; needs kkp
+  (define-key map (kbd "C-<tab>") #'my/extract-package-function)) ; needs kkp
+
+(with-eval-after-load 'ess-r-mode
+  (my/ess-bind-keys ess-r-mode-map))
+
+(with-eval-after-load 'ess-inf
+  (my/ess-bind-keys inferior-ess-mode-map))
 
 ;; ===========================================================================
 ;; 15. External files
