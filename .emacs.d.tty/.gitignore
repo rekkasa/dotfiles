@@ -1,0 +1,11 @@
+# Ignore everything in the directory
+*
+
+# Do not ignore the .gitignore file itself
+!.gitignore
+
+# Specify the exact files you want to keep
+!early-init.el
+!global_r_abbrevs.el
+!init.el
+!md-preview.el
