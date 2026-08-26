@@ -285,11 +285,20 @@
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
   (evil-set-initial-state 'messages-buffer-mode 'normal)
+  ;; REPL and terminal buffers take input for a *process*, so normal state is
+  ;; wrong there: typing `library(x)' would be read as vi motions -- `l' moves
+  ;; right, `i' enters insert, and you get "brary(x)" in the buffer.
+  (dolist (mode '(inferior-ess-mode vterm-mode term-mode eshell-mode
+                  shell-mode comint-mode))
+    (evil-set-initial-state mode 'insert))
   (evil-set-leader 'motion (kbd "SPC")))
+
 
 (use-package evil-collection
   :after evil
   :demand t
+  :init
+  (setq evil-collection-repl-submit-state 'insert)
   :config (evil-collection-init))
 
 (use-package evil-surround
@@ -418,12 +427,25 @@
   (corfu-auto-prefix 2)
   (corfu-auto-delay 0.1)
   (corfu-quit-no-match 'separator)
+  (global-corfu-minibuffer nil)
+  ;; Preselect the prompt rather than the first candidate, so continuing to
+  ;; type never commits something you didn't choose.  Required for TAB-and-Go
+  ;; to behave.
+  (corfu-preselect 'prompt)
+  ;; TAB-and-Go, per corfu's own README.  The important line is ("RET" . nil):
+  ;; corfu binds RET to `corfu-insert' by default, and since `corfu-auto' keeps
+  ;; the popup open almost constantly in a REPL, RET gets swallowed by the
+  ;; completion instead of reaching `comint-send-input'.  Symptom: you type in
+  ;; *R*, the text appears, and RET does nothing.
   :bind (:map corfu-map
-              ("TAB"       . corfu-next)
-              ("<tab>"     . corfu-next)
-              ("S-TAB"     . corfu-previous)
-              ("<backtab>" . corfu-previous)
-              ("RET"       . corfu-insert)))
+              ("TAB"        . corfu-next)
+              ("<tab>"      . corfu-next)
+              ("S-TAB"      . corfu-previous)
+              ("<backtab>"  . corfu-previous)
+              ("M-SPC"      . corfu-insert-separator)
+              ("M-RET"      . corfu-insert)  ; TTY-safe explicit insert
+              ("S-<return>" . corfu-insert)  ; needs kkp
+              ("RET"        . nil)))
 
 ;; Corfu draws its popup in a child frame.  Emacs 31 supports child frames on
 ;; TTYs; Emacs 30 and earlier do not, so on 30 corfu silently falls back to the
@@ -604,6 +626,9 @@ have the same problem locally."
         org-startup-folded 'content
         org-hide-emphasis-markers t
         org-return-follows-link t
+        ;; Record a CLOSED timestamp when an entry is marked DONE.  The daily
+        ;; TODO files (section 13) use this to show when work actually finished.
+        org-log-done 'time
         org-fold-catch-invisible-edits 'show-and-error
         org-src-fontify-natively t
         org-src-tab-acts-natively t
@@ -833,6 +858,68 @@ on.exit(DatabaseConnector::disconnect(connection))
     (write-region (point-min) (point-max) filepath)
     (message "Saved: %s" filepath)))
 
+;; --- Daily TODO files -------------------------------------------------------
+;; One org file per day, named YYYY-MM-DD.org.  Bound to SPC t n in section 14.
+
+(defvar my/org-todo-dir "~/Documents/todos/"
+  "Directory holding the date-stamped daily TODO files.")
+
+(defvar my/org-daily-todo-template
+  (concat "#+title: TODO %Y-%m-%d\n"
+          "#+filetags: :daily:\n"
+          "\n"
+          "* Tasks [/]\n"
+          "** TODO \n"
+          "\n"
+          "* Notes\n")
+  "Template for a fresh daily TODO file.
+Expanded with `format-time-string', so a literal % must be written %%.")
+
+(defun my/org-daily-todo-file (&optional time)
+  "Return the path of the daily TODO file for TIME (default: today)."
+  (expand-file-name (format-time-string "%Y-%m-%d.org" time)
+                    my/org-todo-dir))
+
+(defun my/org-daily-todo ()
+  "Visit today's date-stamped TODO file, creating it from a template if new.
+Point is left on an empty TODO entry in insert state, ready to type."
+  (interactive)
+  (unless (file-directory-p my/org-todo-dir)
+    (make-directory my/org-todo-dir t))
+  (let* ((file (my/org-daily-todo-file))
+         (new  (not (file-exists-p file))))
+    (find-file file)
+    (when new
+      (insert (format-time-string my/org-daily-todo-template))
+      (save-buffer)))
+  (my/org-daily-todo--goto-entry))
+
+(defun my/org-daily-todo--goto-entry ()
+  "Put point on an empty TODO entry under `* Tasks', adding one if needed."
+  (when (buffer-narrowed-p) (widen))
+  (goto-char (point-min))
+  (if (re-search-forward "^\\*\\* TODO[ \t]*$" nil t)
+      (end-of-line)
+    (goto-char (point-min))
+    (when (re-search-forward "^\\* Tasks" nil t)
+      (org-end-of-subtree t t)
+      (skip-chars-backward " \t\n")      ; don't strand it below the blank line
+      (end-of-line)
+      (insert "\n** TODO ")))
+  ;; `org-startup-folded' is `content' (section 11), so on a reopened file the
+  ;; entry can be folded shut; with `org-fold-catch-invisible-edits' at
+  ;; `show-and-error' the first keystroke would abort instead of inserting.
+  ;; Unfold before handing over.  `org-fold-show-subtree' is safe to call
+  ;; unconditionally: it arrived in org 9.6, which is what Emacs 29 ships, and
+  ;; section 0 already refuses to load on anything older.
+  (org-fold-show-subtree)
+  (when (fboundp 'evil-insert-state) (evil-insert-state)))
+
+(defun my/org-todo-done ()
+  "Mark the entry at point DONE, skipping the intermediate state cycle."
+  (interactive)
+  (org-todo 'done))
+
 ;; ===========================================================================
 ;; 14. Keymaps
 ;; ===========================================================================
@@ -855,6 +942,7 @@ on.exit(DatabaseConnector::disconnect(connection))
 (defvar my-space-m-map (make-sparse-keymap) "Leader: markdown.")
 (defvar my-space-v-map (make-sparse-keymap) "Leader: version control.")
 (defvar my-space-a-map (make-sparse-keymap) "Leader: act (embark).")
+(defvar my-space-t-map (make-sparse-keymap) "Leader: todo.")
 
 (define-key evil-normal-state-map (kbd "SPC") my-space-map)
 (define-key evil-motion-state-map (kbd "SPC") my-space-map)
@@ -871,13 +959,14 @@ on.exit(DatabaseConnector::disconnect(connection))
 (define-key my-space-map (kbd "m") my-space-m-map)
 (define-key my-space-map (kbd "v") my-space-v-map)
 (define-key my-space-map (kbd "a") my-space-a-map)
+(define-key my-space-map (kbd "t") my-space-t-map)
 
 (with-eval-after-load 'which-key
   (which-key-add-key-based-replacements
     "SPC f" "files"      "SPC w" "windows"  "SPC b" "bookmarks"
     "SPC g" "gptel"      "SPC c" "capture"  "SPC n" "numbers"
     "SPC r" "roam"       "SPC m" "markdown" "SPC v" "git"
-    "SPC a" "act"))
+    "SPC a" "act"        "SPC t" "todo"))
 
 ;; SPC f -- files
 (define-key my-space-f-map (kbd "f") #'find-file)
@@ -933,6 +1022,14 @@ on.exit(DatabaseConnector::disconnect(connection))
 ;; SPC m -- markdown preview
 (define-key my-space-m-map (kbd "p") #'my/md-preview)
 (define-key my-space-m-map (kbd "k") #'my/md-preview-stop)
+
+;; SPC t -- daily TODO file
+;; `t' and `H'/`L' are left alone deliberately: evil-org's `todo' and `shift'
+;; key themes would bind them, but that costs the `t'/`T' till-motions and the
+;; H/J/K/L moves.  The leader is cheaper.  `C-c C-t' and `S-<right>' still work.
+(define-key my-space-t-map (kbd "n") #'my/org-daily-todo)
+(define-key my-space-t-map (kbd "t") #'org-todo)
+(define-key my-space-t-map (kbd "d") #'my/org-todo-done)
 
 ;; --- ESS bindings -----------------------------------------------------------
 ;; C-SPC survives a terminal (it is C-@) but C-S-SPC and C-<tab> do NOT --
